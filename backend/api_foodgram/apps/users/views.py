@@ -17,7 +17,7 @@ class UserViewSet(viewsets.ModelViewSet):
     pagination_class = PageNumberPagination
     filter_backends = (filters.SearchFilter, )
     search_fields = ('username', )
-    lookup_field = 'username'
+    lookup_field = 'id'
 
     @action(detail=False,
             methods=['GET', 'PATCH', ],

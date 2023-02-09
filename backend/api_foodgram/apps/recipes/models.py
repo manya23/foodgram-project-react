@@ -58,7 +58,7 @@ class Recipe(models.Model):
         help_text='Введите описание рецепта',
     )
     ingredients = models.ManyToManyField(Ingredient, through='IngredientRecipe')
-    tags = models.ManyToManyField(Tag)
+    tags = models.ManyToManyField(Tag, through='TagRecipe')
     image = models.ImageField(
         'Картинка',
         upload_to='recipes/',
@@ -81,3 +81,11 @@ class IngredientRecipe(models.Model):
 
     def __str__(self):
         return f'{self.ingredient} from {self.recipe}'
+
+
+class TagRecipe(models.Model):
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.tag} {self.recipe}'

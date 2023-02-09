@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 from django.core.management.utils import get_random_secret_key
 from dotenv import load_dotenv
@@ -30,6 +31,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
+    'djoser',
     'apps.api',
     'apps.users',
     'apps.recipes',
@@ -115,11 +118,20 @@ AUTH_USER_MODEL = 'users.User'
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 
+# SIMPLE_JWT = {
+#     'ACCESS_TOKEN_LIFETIME': timedelta(days=40),
+# }
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 5,
+}
+
+DJOSER = {
+    "SERIALIZERS": {
+        'token_login': 'apps.custom_auth.serializers.CustomUserSerializer',
+    }
 }
