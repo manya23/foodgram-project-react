@@ -33,12 +33,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'djoser',
-    'apps.api',
-    'apps.users',
-    'apps.recipes',
-    'apps.ingredients',
-    'apps.tags',
-    'apps.custom_auth'
+    'users',
+    'recipes',
+    'api'
+
 ]
 
 MIDDLEWARE = [
@@ -131,7 +129,16 @@ REST_FRAMEWORK = {
 }
 
 DJOSER = {
-    "SERIALIZERS": {
-        'token_login': 'apps.custom_auth.serializers.CustomUserSerializer',
-    }
+    'USER_ID_FIELD': 'id',
+    'SERIALIZERS': {
+        'user_create': 'users.serializers.CustomCreateUserSerializer',
+        'user': 'users.serializers.CustomUserSerializer',
+        'current_user': 'users.serializers.CustomUserSerializer',
+    },
+
+    'PERMISSIONS': {
+        'user': ['djoser.permissions.CurrentUserOrAdminOrReadOnly'],
+        'user_list': ['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
+    },
+    'HIDE_USERS': False,
 }
