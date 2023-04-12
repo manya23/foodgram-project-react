@@ -36,3 +36,29 @@
 
 ### Приложение tags
 Реализует функционал:
+
+### Полный список эндпоинтов проекта:
+/api/users/ </br>
+/api/users/{id}/ </br>
+
+/api/users/me/ </br>
+/api/users/set_password/ </br>
+
+/api/auth/token/login/ </br>
+/api/auth/token/logout/ </br>
+
+/api/tags/ </br>
+/api/tags/{id}/ </br>
+
+/api/recipes/ </br>
+/api/recipes/{id}/ </br>
+
+/api/recipes/download_shopping_cart/ </br>
+/api/recipes/{id}/shopping_cart/ </br>
+/api/recipes/{id}/favorite/ </br>
+
+/api/users/subscriptions/ </br>
+/api/users/{id}/subscribe/ </br>
+
+/api/ingredients/ </br>
+/api/ingredients/{id}/ </br>

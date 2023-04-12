@@ -19,19 +19,22 @@ class User(AbstractUser):
     objects = UserManager()
 
     email = models.EmailField(
-        max_length=254,
-        unique=True
+        blank=False,
+        unique=True,
+        max_length=254
     )
     username = models.CharField(
+        blank=False,
         verbose_name='Никнейм',
-        max_length=150,
-        unique=True
+        max_length=150
     )
     first_name = models.CharField(
+        blank=False,
         verbose_name='Имя',
         max_length=150
     )
     last_name = models.CharField(
+        blank=False,
         verbose_name='Фамилия',
         max_length=150
     )
@@ -41,6 +44,7 @@ class User(AbstractUser):
         max_length=128
     )
     password = models.CharField(
+        blank=False,
         max_length=30
     )
 

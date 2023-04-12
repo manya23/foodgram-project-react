@@ -30,10 +30,11 @@ router1.register(
 )
 
 urlpatterns = [
-    path('', include('djoser.urls')),
     path('', include(router1.urls)),
-
-    re_path(r'^auth/', include('djoser.urls.authtoken'))
+    path('', include('djoser.urls')),
+    # TODO: тут может не работать :Р
+    path('api/', include('djoser.urls.authtoken'))
+    # re_path(r'^auth/', include('djoser.urls.authtoken'))
 ]
 
 # from djoser.views import UserViewSet as DJUserViewSet
