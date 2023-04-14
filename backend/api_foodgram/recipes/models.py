@@ -147,7 +147,7 @@ class UserFavoriteRecipe(models.Model):
     )
 
     def __str__(self):
-        return f'Пользователю {self.user} нравится {self.recipe}'
+        return f'Запись: {self.pk}.Пользователю {self.user} нравится {self.recipe}'
 
 
 class UserShoppingRecipe(models.Model):
@@ -164,5 +164,11 @@ class UserShoppingRecipe(models.Model):
         verbose_name='Список покупок'
     )
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'recipe'],
+                                    name='unique_user_favorite_recipe')
+        ]
+
     def __str__(self):
-        return f'{self.recipe} в корзине пользователя {self.user}'
+        return f'Запись: {self.pk}.{self.recipe} в корзине пользователя {self.user}'
