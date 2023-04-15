@@ -1,8 +1,7 @@
-from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
-from .models import User
-from .models import Follow
+from users.models import User
+from users.models import Follow
 
 from djoser.serializers import UserSerializer, UserCreateSerializer
 

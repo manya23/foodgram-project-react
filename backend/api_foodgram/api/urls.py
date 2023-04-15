@@ -30,10 +30,10 @@ router1.register(
 )
 
 urlpatterns = [
-    path('', include(router1.urls)),
     path('', include('djoser.urls')),
     # TODO: тут может не работать :Р
-    path('api/', include('djoser.urls.authtoken'))
+    path('api/', include('djoser.urls.authtoken')),
+    path('', include(router1.urls)),
     # re_path(r'^auth/', include('djoser.urls.authtoken'))
 ]
 

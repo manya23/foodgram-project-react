@@ -3,20 +3,20 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets, mixins
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
-from .models import Recipe, Ingredient, Tag, UserFavoriteRecipe, UserShoppingRecipe
-# from .permissions import CreateListUsersPermission
-from .serializers import RecipeCreateSerializer, RecipeRetrieveSerializer, TagSerializer, IngredientSerializer
-from .filters import RecipeFilter
+from recipes.models import Recipe, Ingredient, Tag, UserFavoriteRecipe, UserShoppingRecipe
+from recipes.permissions import (RecipeIsAuthenticated, FavoritesIsAuthenticated,
+                                 ShoppingCartIsAuthenticated, TagIngredientPermission)
+from recipes.serializers import (RecipeCreateSerializer, RecipeRetrieveSerializer,
+                                 TagSerializer, IngredientSerializer)
+from recipes.filters import RecipeFilter
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    # permission_classes = [CreateListUsersPermission, IsAuthenticated]
+    permission_classes = (RecipeIsAuthenticated, IsAuthenticatedOrReadOnly,)
     queryset = Recipe.objects.all()
-    # serializer_class = RecipeSerializer
     pagination_class = PageNumberPagination
     filter_backends = (filters.SearchFilter, DjangoFilterBackend,)
     filterset_class = RecipeFilter
@@ -24,7 +24,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action in ('retrieve', 'list',):
-            print('action is: ', self.action)
             return RecipeRetrieveSerializer
         return RecipeCreateSerializer
 
@@ -50,8 +49,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         self.perform_update(serializer)
 
         if getattr(instance, '_prefetched_objects_cache', None):
-            # If 'prefetch_related' has been applied to a queryset, we need to
-            # forcibly invalidate the prefetch cache on the instance.
             instance._prefetched_objects_cache = {}
 
         return Response(
@@ -61,13 +58,33 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(detail=True,
             methods=('post', 'delete'),
-            permission_classes=[IsAuthenticated, ])
+            permission_classes=[IsAuthenticated, FavoritesIsAuthenticated, ])
     def favorite(self, request, **kwargs):
         recipe = get_object_or_404(Recipe, id=kwargs['pk'])
+        print(recipe.name, '\n', recipe.cooking_time)
         if request.method == 'POST':
             # recipes = user.following.select_related('recipe').all()
             if not UserFavoriteRecipe.objects.filter(user=self.request.user,
                                                      recipe=recipe).exists():
+                ##################################
+                # В случае GET-запроса возвращаем список всех котиков
+                # cats = Cat.objects.all()
+                # serializer = CatSerializer(cats, many=True)
+                # return Response(serializer.data)
+
+                # serializer = ShortRecipeSerializer(
+                #     recipe,
+                #     data=request.data,
+                #     context={'request': request}
+                # )
+                # print(serializer.initial_data)
+                # if serializer.is_valid(raise_exception=True):
+                #     print(serializer.data)
+                #     UserFavoriteRecipe.objects.create(user=self.request.user,
+                #                                       recipe=recipe)
+                #     return Response(serializer.data,
+                #                     status=status.HTTP_201_CREATED)
+                ##################################
                 UserFavoriteRecipe.objects.create(user=self.request.user,
                                                   recipe=recipe)
                 data = {
@@ -88,10 +105,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_200_OK)
 
     @action(detail=False,
-            url_path=r'shopping_cart',
-            permission_classes=[IsAuthenticated, ])
-    def shopping_cart(self, request, **kwargs):
-        # TODO: GET почему-то не работает
+            methods=('get',),
+            url_path='shopping_cart',
+            permission_classes=[IsAuthenticated, ShoppingCartIsAuthenticated, ])
+    def get_shopping_cart(self, request, **kwargs):
         user = self.request.user
         if self.request.method == 'GET':
             # сборка списка из ингредиентов всех рецептов в списке
@@ -110,7 +127,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(detail=True,
             methods=('post', 'delete'),
-            permission_classes=[IsAuthenticated, ])
+            permission_classes=[IsAuthenticated, ShoppingCartIsAuthenticated, ])
     def shopping_cart(self, request, **kwargs):
         user = self.request.user
         if self.request.method == 'POST':
@@ -141,7 +158,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 class TagViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                  viewsets.GenericViewSet):
-    # permission_classes = [CreateListUsersPermission, IsAuthenticated]
+    permission_classes = [TagIngredientPermission]
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
 
@@ -156,7 +173,8 @@ class TagViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
 
 class IngredientViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                         viewsets.GenericViewSet):
-    # permission_classes = [CreateListUsersPermission, IsAuthenticated]
+    permission_classes = [TagIngredientPermission]
+    # TODO: get - ингредиентов с возможностью поиска по имени
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     filter_backends = (filters.SearchFilter,)

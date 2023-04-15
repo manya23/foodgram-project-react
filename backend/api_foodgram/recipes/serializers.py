@@ -1,15 +1,14 @@
-from abc import ABC
-
 # from drf_extra_fields.fields import Base64ImageField
 import base64
 
 from django.core.files.base import ContentFile
 from django.shortcuts import get_object_or_404
-from django.db import models
 from rest_framework import serializers, validators
 
 from users.serializers import CustomUserSerializer
-from .models import Recipe, Tag, TagRecipe, Ingredient, IngredientRecipe, UserFavoriteRecipe, UserShoppingRecipe
+from recipes.models import (Recipe, Tag, TagRecipe, Ingredient,
+                            IngredientRecipe, UserFavoriteRecipe,
+                            UserShoppingRecipe)
 
 
 class Base64ImageField(serializers.ImageField):
@@ -236,3 +235,11 @@ class RecipeRetrieveSerializer(serializers.ModelSerializer):
         recipe = get_object_or_404(Recipe, id=obj.id)
         return UserShoppingRecipe.objects.filter(recipe=recipe,
                                                  user=user).exists()
+
+
+# class ShortRecipeSerializer(serializers.ModelSerializer):
+#     image = Base64ImageField(required=False, allow_null=True)
+#
+#     class Meta:
+#         model = Recipe
+#         fields = ('id', 'name', 'image', 'cooking_time', )

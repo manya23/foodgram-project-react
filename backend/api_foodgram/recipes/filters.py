@@ -1,5 +1,6 @@
 from django_filters.rest_framework import ModelMultipleChoiceFilter, FilterSet, BooleanFilter
 
+from users.models import User
 from .models import Recipe, Tag
 
 
@@ -7,6 +8,9 @@ class RecipeFilter(FilterSet):
     tags = ModelMultipleChoiceFilter(field_name='tags__slug',
                                      to_field_name='slug',
                                      queryset=Tag.objects.all())
+    author = ModelMultipleChoiceFilter(field_name='author__username',
+                                       to_field_name='username',
+                                       queryset=User.objects.all())
     is_favorited = BooleanFilter(method='filter_favorited')
     is_in_shopping_cart = BooleanFilter(method='filter_in_shopping_cart')
 
