@@ -71,11 +71,12 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'Такой записи не существует.'},
                             status=status.HTTP_400_BAD_REQUEST)
 
+    # http: // 127.0.0.1: 7000 / api / users / subscriptions / 2 /
     @action(detail=False,
             methods=('get',),
-            permission_classes=[IsAuthenticated],
-            url_path='subscriptions',)
-    def get_subscriptions(self, request, **kwargs):
+            url_path='subscriptions',
+            permission_classes=[IsAuthenticated, ])
+    def subscriptions(self, request, **kwargs):
         # TODO: опять не работает GET c detail=False (а с detail=True работает)
         user = self.request.user
         subscription_list = Follow.objects.filter(user=user).select_related('author')

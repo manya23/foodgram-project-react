@@ -1,3 +1,7 @@
+import pdfkit
+from fpdf import FPDF
+from django.db.models import Sum
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets, mixins
@@ -5,12 +9,14 @@ from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
+from wsgiref.util import FileWrapper
 
-from recipes.models import Recipe, Ingredient, Tag, UserFavoriteRecipe, UserShoppingRecipe
+from recipes.models import (Recipe, Ingredient, Tag, IngredientRecipe,
+                            UserFavoriteRecipe, UserShoppingRecipe)
 from recipes.permissions import (RecipeIsAuthenticated, FavoritesIsAuthenticated,
                                  ShoppingCartIsAuthenticated, TagIngredientPermission)
 from recipes.serializers import (RecipeCreateSerializer, RecipeRetrieveSerializer,
-                                 TagSerializer, IngredientSerializer)
+                                 TagSerializer, IngredientSerializer, ShortRecipeSerializer)
 from recipes.filters import RecipeFilter
 
 
@@ -72,28 +78,27 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 # serializer = CatSerializer(cats, many=True)
                 # return Response(serializer.data)
 
-                # serializer = ShortRecipeSerializer(
-                #     recipe,
-                #     data=request.data,
-                #     context={'request': request}
-                # )
-                # print(serializer.initial_data)
-                # if serializer.is_valid(raise_exception=True):
-                #     print(serializer.data)
-                #     UserFavoriteRecipe.objects.create(user=self.request.user,
-                #                                       recipe=recipe)
-                #     return Response(serializer.data,
-                #                     status=status.HTTP_201_CREATED)
+                serializer = ShortRecipeSerializer(
+                    recipe,
+                    data=request.data,
+                    context={'request': request},
+                )
+                if serializer.is_valid(raise_exception=True):
+                    print(serializer.data)
+                    UserFavoriteRecipe.objects.create(user=self.request.user,
+                                                      recipe=recipe)
+                return Response(serializer.data,
+                                status=status.HTTP_201_CREATED)
                 ##################################
-                UserFavoriteRecipe.objects.create(user=self.request.user,
-                                                  recipe=recipe)
-                data = {
-                    "id": recipe.id,
-                    "name": recipe.name,
-                    # "image": recipe.image,
-                    "cooking_time": recipe.cooking_time
-                }
-                return Response(data=data, status=status.HTTP_200_OK)
+                # UserFavoriteRecipe.objects.create(user=self.request.user,
+                #                                   recipe=recipe)
+                # data = {
+                #     "id": recipe.id,
+                #     "name": recipe.name,
+                #     "image": recipe.image,
+                #     "cooking_time": recipe.cooking_time
+                # }
+                # return Response(data=data, status=status.HTTP_200_OK)
             else:
                 return Response({'detail': 'Такая запись уже существует.'},
                                 status=status.HTTP_400_BAD_REQUEST)
@@ -106,7 +111,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(detail=False,
             methods=('get',),
-            url_path='shopping_cart',
+            url_path='download_shopping_cart',
             permission_classes=[IsAuthenticated, ShoppingCartIsAuthenticated, ])
     def get_shopping_cart(self, request, **kwargs):
         user = self.request.user
@@ -122,8 +127,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     "cooking_time": record.recipe.cooking_time
                 })
             # TODO: возвращаю пдф со списком покупок
-            print('List empty')
-            return Response(data=shopping_list, status=status.HTTP_200_OK)
+            shopping_cart_pdf = self.collect_shopping_pdf()
+
+            # shopping_cart_pdf = pdfkit.from_string(shopping_cart, 'out.pdf')
+            # print(shopping_cart)
+            filename = "sample_pdf.pdf"
+
+            response = HttpResponse(shopping_cart_pdf, content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="' + filename + '"'
+            return response
+            # return HttpResponse(FileWrapper(shopping_cart_pdf), content_type='application/pdf')
+            # return Response(data=shopping_list, status=status.HTTP_200_OK)
 
     @action(detail=True,
             methods=('post', 'delete'),
@@ -154,6 +168,53 @@ class RecipeViewSet(viewsets.ModelViewSet):
                                                             user=user)
             shopping_list_recipe_record.delete()
             return Response(status=status.HTTP_200_OK)
+
+    def collect_shopping_pdf(self,):
+        # temp_lines = read_template_report(template_path)
+        user = self.request.user
+        ingredients = IngredientRecipe.objects.filter(
+            recipe__shopping_recipes__user=user
+        ).values(
+            'ingredient__name', 'ingredient__measurement_unit'
+        ).annotate(Sum('amount')).order_by()
+
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
+        pdf.set_font('DejaVu', '', 14)
+        # report_lines = str()
+        for ingredient in ingredients:
+            # print('ingredient: ', ingredient)
+            line = (
+                f"{ingredient['ingredient__name']}: "
+                f"{ingredient['amount__sum']}"
+                f"{ingredient['ingredient__measurement_unit']}"
+            )
+            print(line)
+            pdf.cell(40, 10, line)
+        pdf.output(f'{user}_shopping_cart.pdf', 'F')
+        # for line in temp_lines:
+            # line = line.replace('$Заголовок$', str(report_part_header))
+            # line = line.replace('$График$', str(report_part_plot))
+            # line = line.replace('$Сопутствующая информация$', report_part_info)
+            # report_lines.append(line)
+
+        # report_name = '{folder_name}{name}'.format(folder_name=meta_data_folder_name, name=report_part_name)
+        # save_report(report_name, report_lines)
+        return pdf
+
+
+# def read_template_report(path):
+#     with open(path) as f:
+#         lines = f.readlines()
+#     return lines
+#
+#
+# def save_report(name, report_lines):
+#     path = name + '.html'
+#     with open(path, 'w') as f:
+#         for line in report_lines:
+#             f.write("%s\n" % line)
 
 
 class TagViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,

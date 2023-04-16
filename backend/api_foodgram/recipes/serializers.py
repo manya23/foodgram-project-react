@@ -118,7 +118,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         print('recipe: ', recipe)
         return recipe
 
-    # TODO: переписать метод
     def update(self, instance, validated_data):
         print('ok: ', instance.id)
         recipe = get_object_or_404(Recipe, id=instance.id)
@@ -237,9 +236,9 @@ class RecipeRetrieveSerializer(serializers.ModelSerializer):
                                                  user=user).exists()
 
 
-# class ShortRecipeSerializer(serializers.ModelSerializer):
-#     image = Base64ImageField(required=False, allow_null=True)
-#
-#     class Meta:
-#         model = Recipe
-#         fields = ('id', 'name', 'image', 'cooking_time', )
+class ShortRecipeSerializer(serializers.ModelSerializer):
+    image = Base64ImageField(required=False, allow_null=True)
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'image')
