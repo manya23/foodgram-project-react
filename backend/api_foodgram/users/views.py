@@ -12,6 +12,7 @@ from users.permissions import UsersPermission
 from users.serializers import CustomUserSerializer
 
 
+# serializers.CustomUserSerializer
 class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [UsersPermission, IsAuthenticated]
     queryset = User.objects.all()
@@ -73,7 +74,10 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'Такой записи не существует.'},
                             status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=False, methods=['get'], url_path='subscriptions')
+    @action(detail=False,
+            methods=['get'],
+            url_path='subscriptions',
+            permission_classes=[IsAuthenticated, ])
     def subscriptions(self, request, **kwargs):
         # TODO: опять не работает GET c detail=False (а с detail=True работает)
         user = self.request.user
