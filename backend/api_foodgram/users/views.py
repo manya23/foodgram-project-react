@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, status, viewsets, mixins
+from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
@@ -53,8 +53,10 @@ class UserViewSet(viewsets.ModelViewSet):
                     "username": author.username,
                     "first_name": author.first_name,
                     "last_name": author.last_name,
-                    "is_subscribed": Follow.objects.filter(user=user,
-                                                           author=author).exists(),
+                    "is_subscribed": Follow.objects.filter(
+                        user=user,
+                        author=author
+                    ).exists(),
                     "recipes": recipes_list,
                     "recipes_count": recipes_count
                 }
@@ -71,15 +73,13 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'Такой записи не существует.'},
                             status=status.HTTP_400_BAD_REQUEST)
 
-    # http: // 127.0.0.1: 7000 / api / users / subscriptions / 2 /
-    @action(detail=False,
-            methods=('get',),
-            url_path='subscriptions',
-            permission_classes=[IsAuthenticated, ])
+    @action(detail=False, methods=['get'], url_path='subscriptions')
     def subscriptions(self, request, **kwargs):
         # TODO: опять не работает GET c detail=False (а с detail=True работает)
         user = self.request.user
-        subscription_list = Follow.objects.filter(user=user).select_related('author')
+        subscription_list = Follow.objects.filter(
+            user=user
+        ).select_related('author')
         if self.request.method == 'GET':
             data = list()
             recipes_list = list()
@@ -92,7 +92,6 @@ class UserViewSet(viewsets.ModelViewSet):
                     recipes_list.append({
                         "id": record.recipe.id,
                         "name": record.recipe.name,
-                        # "image": recipe.image,
                         "cooking_time": record.recipe.cooking_time
                     })
                     recipes_count += 1
@@ -103,8 +102,10 @@ class UserViewSet(viewsets.ModelViewSet):
                     "username": author.username,
                     "first_name": author.first_name,
                     "last_name": author.last_name,
-                    "is_subscribed": Follow.objects.filter(user=user,
-                                                           author=author).exists(),
+                    "is_subscribed": Follow.objects.filter(
+                        user=user,
+                        author=author
+                    ).exists(),
                     "recipes": recipes_list,
                     "recipes_count": recipes_count
                 })

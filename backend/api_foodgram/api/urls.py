@@ -1,4 +1,4 @@
-from django.urls import include, path, re_path
+from django.urls import include, path
 from rest_framework import routers
 
 from users.views import UserViewSet
@@ -31,19 +31,6 @@ router1.register(
 
 urlpatterns = [
     path('', include('djoser.urls')),
-    # TODO: тут может не работать :Р
     path('api/', include('djoser.urls.authtoken')),
     path('', include(router1.urls)),
-    # re_path(r'^auth/', include('djoser.urls.authtoken'))
 ]
-
-# from djoser.views import UserViewSet as DJUserViewSet
-# ...
-# path('users/set_password/',
-#          DJUserViewSet.as_view({'post': 'set_password'})),
-#
-# urlpatterns = [
-#     path('', include('djoser.urls')),
-#     path('', include(v1_router.urls)),
-#     path('auth/', include('djoser.urls.authtoken')),
-# ]

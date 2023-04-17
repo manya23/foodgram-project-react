@@ -3,7 +3,8 @@ from rest_framework import serializers
 from users.models import User
 from users.models import Follow
 
-from djoser.serializers import UserSerializer, UserCreateSerializer
+from djoser.serializers import (UserSerializer,
+                                UserCreateSerializer)
 
 
 class CustomCreateUserSerializer (UserCreateSerializer):
@@ -12,11 +13,6 @@ class CustomCreateUserSerializer (UserCreateSerializer):
         model = User
         fields = ('email', 'id', 'username', 'first_name',
                   'last_name', 'password',)
-
-    def to_representation(self, instance):
-        print(instance)
-        print(type(instance))
-        return instance
 
 
 class CustomUserSerializer(UserSerializer):
@@ -33,8 +29,6 @@ class CustomUserSerializer(UserSerializer):
                                          author=obj).exists()
         else:
             return False
-        # return Follow.objects.filter(user=self.context['request'].user,
-        #                              author=obj).exists()
 
     def to_internal_value(self, data):
         username = data.get('username')
@@ -49,11 +43,5 @@ class CustomUserSerializer(UserSerializer):
                 raise serializers.ValidationError({
                     f'{field}': 'Обязательное поле.'
                 })
-        # self.save()
-        # print(data)
-        # print(type(data))
-        # data.pop('password')
-        # data.update({'id': User.objects.get_object_or_404(username=username).id})
-        # return = OrderedDict()
 
         return data

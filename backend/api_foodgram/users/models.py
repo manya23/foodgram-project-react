@@ -1,4 +1,5 @@
-from django.contrib.auth.models import AbstractUser, AbstractBaseUser, UserManager
+from django.contrib.auth.models import (AbstractUser,
+                                        UserManager)
 from django.db import models
 
 
@@ -91,10 +92,6 @@ class Follow(models.Model):
     class Meta:
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
-        # TODO: Такую же проверку нужно реализовать и на уровне сериализатора.
-        # В классе Meta сериализатора нужно указать опциональное поле validators,
-        # значением которого будет список валидаторов. Сейчас нужен только один
-        # валидатор: UniqueTogetherValidator.
         constraints = [
             models.UniqueConstraint(fields=['user', 'author'],
                                     name='unique_follow')

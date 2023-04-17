@@ -1,5 +1,4 @@
-import pdfkit
-from fpdf import FPDF
+import weasyprint
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -7,16 +6,26 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets, mixins
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import (IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
-from wsgiref.util import FileWrapper
 
-from recipes.models import (Recipe, Ingredient, Tag, IngredientRecipe,
-                            UserFavoriteRecipe, UserShoppingRecipe)
-from recipes.permissions import (RecipeIsAuthenticated, FavoritesIsAuthenticated,
-                                 ShoppingCartIsAuthenticated, TagIngredientPermission)
-from recipes.serializers import (RecipeCreateSerializer, RecipeRetrieveSerializer,
-                                 TagSerializer, IngredientSerializer, ShortRecipeSerializer)
+from api_foodgram import settings
+from recipes.models import (Recipe,
+                            Ingredient,
+                            Tag,
+                            IngredientRecipe,
+                            UserFavoriteRecipe,
+                            UserShoppingRecipe)
+from recipes.permissions import (RecipeIsAuthenticated,
+                                 FavoritesIsAuthenticated,
+                                 ShoppingCartIsAuthenticated,
+                                 TagIngredientPermission)
+from recipes.serializers import (RecipeCreateSerializer,
+                                 RecipeRetrieveSerializer,
+                                 TagSerializer,
+                                 IngredientSerializer,
+                                 ShortRecipeSerializer)
 from recipes.filters import RecipeFilter
 
 
@@ -69,36 +78,18 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe = get_object_or_404(Recipe, id=kwargs['pk'])
         print(recipe.name, '\n', recipe.cooking_time)
         if request.method == 'POST':
-            # recipes = user.following.select_related('recipe').all()
             if not UserFavoriteRecipe.objects.filter(user=self.request.user,
                                                      recipe=recipe).exists():
-                ##################################
-                # В случае GET-запроса возвращаем список всех котиков
-                # cats = Cat.objects.all()
-                # serializer = CatSerializer(cats, many=True)
-                # return Response(serializer.data)
-
                 serializer = ShortRecipeSerializer(
                     recipe,
                     data=request.data,
                     context={'request': request},
                 )
                 if serializer.is_valid(raise_exception=True):
-                    print(serializer.data)
                     UserFavoriteRecipe.objects.create(user=self.request.user,
                                                       recipe=recipe)
                 return Response(serializer.data,
                                 status=status.HTTP_201_CREATED)
-                ##################################
-                # UserFavoriteRecipe.objects.create(user=self.request.user,
-                #                                   recipe=recipe)
-                # data = {
-                #     "id": recipe.id,
-                #     "name": recipe.name,
-                #     "image": recipe.image,
-                #     "cooking_time": recipe.cooking_time
-                # }
-                # return Response(data=data, status=status.HTTP_200_OK)
             else:
                 return Response({'detail': 'Такая запись уже существует.'},
                                 status=status.HTTP_400_BAD_REQUEST)
@@ -112,36 +103,38 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(detail=False,
             methods=('get',),
             url_path='download_shopping_cart',
-            permission_classes=[IsAuthenticated, ShoppingCartIsAuthenticated, ])
+            permission_classes=[IsAuthenticated,
+                                ShoppingCartIsAuthenticated, ])
     def get_shopping_cart(self, request, **kwargs):
         user = self.request.user
         if self.request.method == 'GET':
             # сборка списка из ингредиентов всех рецептов в списке
             shopping_list = list()
-            recipes = UserShoppingRecipe.objects.filter(user=user).select_related('recipe')
+            recipes = UserShoppingRecipe.objects.filter(
+                user=user
+            ).select_related('recipe')
             for record in recipes:
                 shopping_list.append({
                     "id": record.recipe.id,
                     "name": record.recipe.name,
-                    # "image": recipe.image,
                     "cooking_time": record.recipe.cooking_time
                 })
-            # TODO: возвращаю пдф со списком покупок
-            shopping_cart_pdf = self.collect_shopping_pdf()
+            shopping_cart_path = self.collect_shopping_pdf()
+            shopping_cart_pdf = weasyprint.HTML(
+                shopping_cart_path + '.html'
+            ).write_pdf()
+            filename = "shopping_card.pdf"
 
-            # shopping_cart_pdf = pdfkit.from_string(shopping_cart, 'out.pdf')
-            # print(shopping_cart)
-            filename = "sample_pdf.pdf"
-
-            response = HttpResponse(shopping_cart_pdf, content_type='application/pdf')
-            response['Content-Disposition'] = 'attachment; filename="' + filename + '"'
+            response = HttpResponse(shopping_cart_pdf,
+                                    content_type='application/pdf')
+            response['Content-Disposition'] = ('attachment; filename="'
+                                               + filename + '"')
             return response
-            # return HttpResponse(FileWrapper(shopping_cart_pdf), content_type='application/pdf')
-            # return Response(data=shopping_list, status=status.HTTP_200_OK)
 
     @action(detail=True,
             methods=('post', 'delete'),
-            permission_classes=[IsAuthenticated, ShoppingCartIsAuthenticated, ])
+            permission_classes=[IsAuthenticated,
+                                ShoppingCartIsAuthenticated, ])
     def shopping_cart(self, request, **kwargs):
         user = self.request.user
         if self.request.method == 'POST':
@@ -154,7 +147,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 data = {
                     "id": recipe.id,
                     "name": recipe.name,
-                    # "image": recipe.image,
                     "cooking_time": recipe.cooking_time}
                 return Response(data=data, status=status.HTTP_200_OK)
             else:
@@ -169,52 +161,51 @@ class RecipeViewSet(viewsets.ModelViewSet):
             shopping_list_recipe_record.delete()
             return Response(status=status.HTTP_200_OK)
 
-    def collect_shopping_pdf(self,):
-        # temp_lines = read_template_report(template_path)
+    def collect_shopping_pdf(self, ):
         user = self.request.user
         ingredients = IngredientRecipe.objects.filter(
             recipe__shopping_recipes__user=user
         ).values(
             'ingredient__name', 'ingredient__measurement_unit'
         ).annotate(Sum('amount')).order_by()
-
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
-        pdf.set_font('DejaVu', '', 14)
-        # report_lines = str()
+        report_lines = list()
+        ingredient_data = str()
+        temp_lines = read_template_report(
+            f'{settings.STATIC_ROOT}/pdf_template.html'
+        )
         for ingredient in ingredients:
-            # print('ingredient: ', ingredient)
-            line = (
+            ingredient_data += (
+                "<li>"
                 f"{ingredient['ingredient__name']}: "
                 f"{ingredient['amount__sum']}"
                 f"{ingredient['ingredient__measurement_unit']}"
+                "</li>"
+
             )
-            print(line)
-            pdf.cell(40, 10, line)
-        pdf.output(f'{user}_shopping_cart.pdf', 'F')
-        # for line in temp_lines:
-            # line = line.replace('$Заголовок$', str(report_part_header))
-            # line = line.replace('$График$', str(report_part_plot))
-            # line = line.replace('$Сопутствующая информация$', report_part_info)
-            # report_lines.append(line)
+        for line in temp_lines:
+            line = line.replace('$$$Имя пользователя$$$', str(user.username))
+            line = line.replace('$$$Список покупок$$$', str(ingredient_data))
+            report_lines.append(line)
+        report_part_name = f'/shopping_list_for_{user.username}'
+        report_name = '{folder_name}{name}'.format(
+            folder_name=settings.MEDIA_ROOT,
+            name=report_part_name
+        )
+        save_report(report_name, report_lines)
+        return report_name
 
-        # report_name = '{folder_name}{name}'.format(folder_name=meta_data_folder_name, name=report_part_name)
-        # save_report(report_name, report_lines)
-        return pdf
+
+def read_template_report(path):
+    with open(path) as f:
+        lines = f.readlines()
+    return lines
 
 
-# def read_template_report(path):
-#     with open(path) as f:
-#         lines = f.readlines()
-#     return lines
-#
-#
-# def save_report(name, report_lines):
-#     path = name + '.html'
-#     with open(path, 'w') as f:
-#         for line in report_lines:
-#             f.write("%s\n" % line)
+def save_report(name, report_lines):
+    path = name + '.html'
+    with open(path, 'w') as f:
+        for line in report_lines:
+            f.write("%s\n" % line)
 
 
 class TagViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
@@ -235,7 +226,6 @@ class TagViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
 class IngredientViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                         viewsets.GenericViewSet):
     permission_classes = [TagIngredientPermission]
-    # TODO: get - ингредиентов с возможностью поиска по имени
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     filter_backends = (filters.SearchFilter,)

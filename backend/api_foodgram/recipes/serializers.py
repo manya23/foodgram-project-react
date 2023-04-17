@@ -1,4 +1,3 @@
-# from drf_extra_fields.fields import Base64ImageField
 import base64
 
 from django.core.files.base import ContentFile
@@ -27,25 +26,6 @@ class TagSerializer(serializers.ModelSerializer):
         model = Tag
         fields = ('id', 'name', 'color', 'slug',)
 
-    # def to_representation(self, data):
-    #     print('TagSerializer data: ', data.id)
-    #     if not Tag.objects.filter(id=data.id):
-    #         raise serializers.ValidationError({
-    #             'detail': 'Страница не найдена.'
-    #         })
-    #
-    #     return data
-
-
-# No usage!!!
-class TagRecipeSerializer(serializers.ModelSerializer):
-    # id = serializers.IntegerField(source="tag.id")
-    # name = serializers.CharField(source="tag.name")
-
-    class Meta:
-        model = TagRecipe
-        fields = ('id',)
-
 
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
@@ -58,7 +38,6 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class IngredientRecipeInputSerializer(serializers.Serializer):
-    # id = serializers.IntegerField()
     id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all(), source="ingredient_id")
     amount = serializers.IntegerField()
@@ -67,7 +46,9 @@ class IngredientRecipeInputSerializer(serializers.Serializer):
 class IngredientRecipeSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source='ingredient.id')
     name = serializers.ReadOnlyField(source='ingredient.name')
-    measurement_unit = serializers.ReadOnlyField(source='ingredient.measurement_unit')
+    measurement_unit = serializers.ReadOnlyField(
+        source='ingredient.measurement_unit'
+    )
 
     class Meta:
         model = IngredientRecipe
@@ -103,7 +84,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         recipe = Recipe.objects.create(**validated_data)
         # TODO: можно создать все сразу через один запрос: bulk_create
         for ingredient in ingredients:
-            print(ingredient['ingredient_id'].id)
             IngredientRecipe.objects.create(
                 ingredient=ingredient['ingredient_id'],
                 recipe=recipe,
@@ -115,11 +95,9 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                 tag=cur_tag,
                 recipe=recipe
             )
-        print('recipe: ', recipe)
         return recipe
 
     def update(self, instance, validated_data):
-        print('ok: ', instance.id)
         recipe = get_object_or_404(Recipe, id=instance.id)
         instance.name = validated_data.get('name', instance.name)
         instance.text = validated_data.get('text', instance.text)
@@ -131,20 +109,16 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             ingredients_data = validated_data.pop('ingredientrecipe')
             lst = []
             for ingredient in ingredients_data:
-                # cur_ingredient = get_object_or_404(Ingredient, id=ingredient['id'])
                 IngredientRecipe.objects.get_or_create(
                     ingredient=ingredient['ingredient_id'],
                     recipe=recipe,
                     amount=ingredient['amount']
                 )
-                print('cur_ingredient: ', ingredient['ingredient_id'])
                 lst.append(ingredient['ingredient_id'])
             instance.ingredients.set(lst)
-        print('validated_data: ', validated_data)
         if 'tags' in validated_data:
             tags_data = validated_data.pop('tags')
             lst = []
-            print('tags_data: ', tags_data)
             for tag in tags_data:
                 cur_tag = get_object_or_404(Tag, id=tag.id)
                 TagRecipe.objects.get_or_create(
@@ -153,39 +127,16 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                 )
                 lst.append(cur_tag)
             instance.tags.set(lst)
-        print('instance: ', instance.ingredients)
         instance.save()
         return instance
 
-    # def validate_birth_year(self, value):
-    #     year = dt.date.today().year
-    #     if not (year - 40 < value <= year):
-    #         raise serializers.ValidationError('Проверьте год рождения!')
-    #     return value
-
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        print('instance: ', instance)
-        # ingredients = representation.pop('ingredients')
-        # print('ingredients: \n', ingredients)
-        # new_ingredients = list()
-        # for ingredient in ingredients:
-        #     # cur_ingredient = get_object_or_404(Ingredient, id=ingredient['id'])
-        #     # new_ingredients.append({'ingredient': cur_ingredient,
-        #     #                         'amount': ingredient['amount']})
-        #     ingredient_recipe = get_object_or_404(IngredientRecipe, ingredient=ingredient)
-        #     new_ingredients.append({'id': ingredient_recipe,
-        #                             'amount': ingredient['amount']})
-        #
-        # # representation['ingredients'] = instance.liked_by.count()
-        # representation['ingredients'] = new_ingredients
-        # print('representation: \n', representation)
         new_tags = list()
         for tag in representation['tags']:
             new_tags.append(get_object_or_404(Tag, id=tag))
         representation['tags'] = new_tags
         # TODO: почему в ответе поле с изображением пустое?
-        # representation['image'] = instance.image
         return RecipeRetrieveSerializer(
             representation,
             context={'request': self.context.get('request')}
@@ -213,11 +164,6 @@ class RecipeRetrieveSerializer(serializers.ModelSerializer):
             'url': {'lookup_field': 'name'}
         }
         depth = 2
-
-    # def get_tags(self, obj):
-    #     print('tag: ', obj.tags)
-    #
-    #     return obj.tags
 
     def get_is_favorited(self, obj):
         user = self.context['request'].user

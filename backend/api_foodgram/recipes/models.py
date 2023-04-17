@@ -87,13 +87,11 @@ class Recipe(models.Model):
         verbose_name='Описание рецепта',
         help_text='Введите описание рецепта',
     )
-    # TODO: выбор из предустановленного списка, с указанием количества и единицы измерения
     ingredients = models.ManyToManyField(
         Ingredient,
         blank=False,
         through='IngredientRecipe'
     )
-    # TODO: можно установить несколько тегов на один рецепт, выбор из предустановленных
     tags = models.ManyToManyField(
         Tag,
         blank=False,
@@ -146,7 +144,8 @@ class UserFavoriteRecipe(models.Model):
     )
 
     def __str__(self):
-        return f'Запись: {self.pk}.Пользователю {self.user} нравится {self.recipe}'
+        return (f'Запись: {self.pk}.Пользователю '
+                f'{self.user} нравится {self.recipe}')
 
 
 class UserShoppingRecipe(models.Model):
@@ -170,4 +169,5 @@ class UserShoppingRecipe(models.Model):
         ]
 
     def __str__(self):
-        return f'Запись: {self.pk}.{self.recipe} в корзине пользователя {self.user}'
+        return (f'Запись: {self.pk}.{self.recipe} '
+                f'в корзине пользователя {self.user}')

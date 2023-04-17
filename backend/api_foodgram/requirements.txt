@@ -25,3 +25,4 @@ django-extensions==2.2.9
 
 
 Pillow==8.3.1
+weasyprint
