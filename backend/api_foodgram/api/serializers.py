@@ -3,11 +3,14 @@ import base64
 from django.core.files.base import ContentFile
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers, validators
+from djoser.serializers import (UserSerializer,
+                                UserCreateSerializer)
 
-from users.serializers import CustomUserSerializer
 from recipes.models import (Recipe, Tag, TagRecipe, Ingredient,
                             IngredientRecipe, UserFavoriteRecipe,
                             UserShoppingRecipe)
+from users.models import (User,
+                          Follow)
 
 
 class Base64ImageField(serializers.ImageField):
@@ -19,6 +22,62 @@ class Base64ImageField(serializers.ImageField):
             data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
 
         return super().to_internal_value(data)
+
+
+class CustomCreateUserSerializer (UserCreateSerializer):
+
+    class Meta:
+        model = User
+        fields = ('email', 'id', 'username', 'first_name',
+                  'last_name',)
+
+    def to_internal_value(self, data):
+        username = data.get('username')
+        first_name = data.get('first_name')
+        last_name = data.get('last_name')
+        email = data.get('email')
+        password = data.get('password')
+
+        for field in [username, first_name, last_name,
+                      email, password]:
+            if not field:
+                raise serializers.ValidationError({
+                    f'{field}': 'Обязательное поле.'
+                })
+
+        return data
+
+
+class CustomUserSerializer(UserSerializer):
+    is_subscribed = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ('email', 'id', 'username', 'first_name',
+                  'last_name', 'is_subscribed',)
+
+    def get_is_subscribed(self, obj):
+        if self.context['request'].user.is_authenticated:
+            return Follow.objects.filter(user=self.context['request'].user,
+                                         author=obj).exists()
+        else:
+            return False
+
+    def to_internal_value(self, data):
+        username = data.get('username')
+        first_name = data.get('first_name')
+        last_name = data.get('last_name')
+        email = data.get('email')
+        password = data.get('password')
+
+        for field in [username, first_name, last_name,
+                      email, password]:
+            if not field:
+                raise serializers.ValidationError({
+                    f'{field}': 'Обязательное поле.'
+                })
+
+        return data
 
 
 class TagSerializer(serializers.ModelSerializer):
