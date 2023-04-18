@@ -146,6 +146,9 @@ DJOSER = {
         'token_destroy': ['rest_framework.permissions.IsAuthenticated'],
     },
     'HIDE_USERS': False,
+    'DEFAULT_PAGINATION_CLASS': {
+        'user': 'rest_framework.pagination.PageNumberPagination'
+    }
 }
 
 CORS_URLS_REGEX = r'^/api/.*$'

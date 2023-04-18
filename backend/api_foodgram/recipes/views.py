@@ -108,18 +108,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def get_shopping_cart(self, request, **kwargs):
         user = self.request.user
         if self.request.method == 'GET':
-            # сборка списка из ингредиентов всех рецептов в списке
-            shopping_list = list()
-            recipes = UserShoppingRecipe.objects.filter(
-                user=user
-            ).select_related('recipe')
-            for record in recipes:
-                shopping_list.append({
-                    "id": record.recipe.id,
-                    "name": record.recipe.name,
-                    "cooking_time": record.recipe.cooking_time
-                })
-            shopping_cart_path = self.collect_shopping_pdf()
+            shopping_cart_path = self.collect_shopping_pdf(user)
             shopping_cart_pdf = weasyprint.HTML(
                 shopping_cart_path + '.html'
             ).write_pdf()
@@ -161,8 +150,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             shopping_list_recipe_record.delete()
             return Response(status=status.HTTP_200_OK)
 
-    def collect_shopping_pdf(self, ):
-        user = self.request.user
+    def collect_shopping_pdf(self, user):
         ingredients = IngredientRecipe.objects.filter(
             recipe__shopping_recipes__user=user
         ).values(
