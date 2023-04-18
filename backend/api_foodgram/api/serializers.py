@@ -246,4 +246,8 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = ('id', 'image')
+        fields = ('id', 'image', 'name', 'cooking_time')
+
+    # def validate(self, data):
+    #     print('data: ', data)
+    #     return data

@@ -128,7 +128,8 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
     ),
-    'PAGE_SIZE': 5,
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
 }
 
 DJOSER = {
@@ -146,9 +147,6 @@ DJOSER = {
         'token_destroy': ['rest_framework.permissions.IsAuthenticated'],
     },
     'HIDE_USERS': False,
-    'DEFAULT_PAGINATION_CLASS': {
-        'user': 'rest_framework.pagination.PageNumberPagination'
-    }
 }
 
 CORS_URLS_REGEX = r'^/api/.*$'

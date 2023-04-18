@@ -109,7 +109,7 @@ class Recipe(models.Model):
         verbose_name_plural = 'Рецепты'
 
     def __str__(self):
-        return self.text[:15]
+        return f'Рецепт "{self.name}": {self.text[:15]}'
 
 
 class IngredientRecipe(models.Model):
@@ -118,7 +118,7 @@ class IngredientRecipe(models.Model):
     amount = models.IntegerField()
 
     def __str__(self):
-        return f'{self.ingredient} from {self.recipe}'
+        return f'{self.ingredient} из рецепта {self.recipe}'
 
 
 class TagRecipe(models.Model):
