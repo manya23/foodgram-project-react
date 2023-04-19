@@ -1,51 +1,40 @@
-import base64
+from abc import ABC
 
-from django.core.files.base import ContentFile
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers, validators
 from djoser.serializers import (UserSerializer,
                                 UserCreateSerializer)
 
-from recipes.models import (Recipe, Tag, TagRecipe, Ingredient,
-                            IngredientRecipe, UserFavoriteRecipe,
+from recipes.models import (Recipe,
+                            Tag,
+                            TagRecipe,
+                            Ingredient,
+                            IngredientRecipe,
+                            UserFavoriteRecipe,
                             UserShoppingRecipe)
 from users.models import (User,
                           Follow)
+from api.fields import Base64ImageField
 
 
-class Base64ImageField(serializers.ImageField):
-    def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith('data:image'):
-            format, imgstr = data.split(';base64,')
-            ext = format.split('/')[-1]
+class CustomCreateUserSerializer(UserCreateSerializer):
+    class Meta:
+        model = User
+        fields = ('email', 'username', 'first_name',
+                  'last_name', 'password',)
 
-            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
+    def to_representation(self, instance):
+        return UserCreateRetrieveSerializer(
+            instance=instance,
+            context={'request': self.context.get('request')}
+        ).data
 
-        return super().to_internal_value(data)
 
-
-class CustomCreateUserSerializer (UserCreateSerializer):
-
+class UserCreateRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('email', 'id', 'username', 'first_name',
-                  'last_name',)
-
-    def to_internal_value(self, data):
-        username = data.get('username')
-        first_name = data.get('first_name')
-        last_name = data.get('last_name')
-        email = data.get('email')
-        password = data.get('password')
-
-        for field in [username, first_name, last_name,
-                      email, password]:
-            if not field:
-                raise serializers.ValidationError({
-                    f'{field}': 'Обязательное поле.'
-                })
-
-        return data
+                  'last_name')
 
 
 class CustomUserSerializer(UserSerializer):
@@ -60,24 +49,7 @@ class CustomUserSerializer(UserSerializer):
         if self.context['request'].user.is_authenticated:
             return Follow.objects.filter(user=self.context['request'].user,
                                          author=obj).exists()
-        else:
-            return False
-
-    def to_internal_value(self, data):
-        username = data.get('username')
-        first_name = data.get('first_name')
-        last_name = data.get('last_name')
-        email = data.get('email')
-        password = data.get('password')
-
-        for field in [username, first_name, last_name,
-                      email, password]:
-            if not field:
-                raise serializers.ValidationError({
-                    f'{field}': 'Обязательное поле.'
-                })
-
-        return data
+        return False
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -141,63 +113,38 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         ingredients = validated_data.pop('ingredientrecipe')
         tags = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
-        # TODO: можно создать все сразу через один запрос: bulk_create
-        for ingredient in ingredients:
-            IngredientRecipe.objects.create(
-                ingredient=ingredient['ingredient_id'],
-                recipe=recipe,
-                amount=ingredient['amount']
-            )
-        for tag in tags:
-            cur_tag = get_object_or_404(Tag, id=tag.id)
-            TagRecipe.objects.create(
-                tag=cur_tag,
-                recipe=recipe
-            )
+
+        create_recipe_record(
+            ingredients,
+            recipe,
+            tags
+        )
         return recipe
 
     def update(self, instance, validated_data):
-        recipe = get_object_or_404(Recipe, id=instance.id)
-        instance.name = validated_data.get('name', instance.name)
-        instance.text = validated_data.get('text', instance.text)
-        instance.cooking_time = validated_data.get(
-            'cooking_time', instance.cooking_time
+        super().update(instance, validated_data)
+        author = instance.author
+        recipe_id = instance.id
+        instance.delete()
+
+        ingredients = validated_data.pop('ingredientrecipe')
+        tags = validated_data.pop('tags')
+        recipe = Recipe.objects.create(
+            author=author,
+            id=recipe_id,
+            **validated_data
         )
-        instance.image = validated_data.get('image', instance.image)
-        if 'ingredientrecipe' in validated_data:
-            ingredients_data = validated_data.pop('ingredientrecipe')
-            lst = []
-            for ingredient in ingredients_data:
-                IngredientRecipe.objects.get_or_create(
-                    ingredient=ingredient['ingredient_id'],
-                    recipe=recipe,
-                    amount=ingredient['amount']
-                )
-                lst.append(ingredient['ingredient_id'])
-            instance.ingredients.set(lst)
-        if 'tags' in validated_data:
-            tags_data = validated_data.pop('tags')
-            lst = []
-            for tag in tags_data:
-                cur_tag = get_object_or_404(Tag, id=tag.id)
-                TagRecipe.objects.get_or_create(
-                    tag=cur_tag,
-                    recipe=recipe
-                )
-                lst.append(cur_tag)
-            instance.tags.set(lst)
-        instance.save()
-        return instance
+
+        create_recipe_record(
+            ingredients,
+            recipe,
+            tags
+        )
+        return recipe
 
     def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        new_tags = list()
-        for tag in representation['tags']:
-            new_tags.append(get_object_or_404(Tag, id=tag))
-        representation['tags'] = new_tags
-        # TODO: почему в ответе поле с изображением пустое?
         return RecipeRetrieveSerializer(
-            representation,
+            instance=instance,
             context={'request': self.context.get('request')}
         ).data
 
@@ -248,6 +195,45 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = ('id', 'image', 'name', 'cooking_time')
 
-    # def validate(self, data):
-    #     print('data: ', data)
-    #     return data
+
+class SubscriptionSerializer(serializers.Serializer):
+    author = CustomUserSerializer()
+    recipes = ShortRecipeSerializer(many=True,
+                                    source='author.recipes')
+    recipes_count = serializers.SerializerMethodField(read_only=True)
+
+    def get_recipes_count(self, obj):
+        return Recipe.objects.filter(author=obj.author).count()
+
+
+def create_recipe_record(
+        ingredients,
+        recipe,
+        tags
+):
+    ingredients_bulk = list()
+    for ingredient in ingredients:
+        ingredients_bulk.append(
+            IngredientRecipe(
+                ingredient=ingredient['ingredient_id'],
+                recipe=recipe,
+                amount=ingredient['amount']
+            )
+        )
+    IngredientRecipe.objects.bulk_create(
+        ingredients_bulk,
+        batch_size=15
+    )
+    tags_bulk = list()
+    for tag in tags:
+        cur_tag = get_object_or_404(Tag, id=tag.id)
+        tags_bulk.append(
+            TagRecipe(
+                tag=cur_tag,
+                recipe=recipe
+            )
+        )
+    TagRecipe.objects.bulk_create(
+        tags_bulk,
+        batch_size=15
+    )

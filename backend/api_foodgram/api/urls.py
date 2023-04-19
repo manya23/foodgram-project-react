@@ -25,9 +25,25 @@ router1.register(
 )
 
 urlpatterns = [
-    path('users/subscriptions/', UserApi.as_view()),
-    path('users/<int:user_id>/subscribe/', subscribe),
-    path('', include('djoser.urls')),
-    path('auth/', include('djoser.urls.authtoken')),
-    path('', include(router1.urls)),
+    path(
+        'users/subscriptions/',
+        UserApi.as_view(),
+        name='users_subscriptions'
+    ),
+    path(
+        'users/<int:user_id>/subscribe/',
+        subscribe
+    ),
+    path(
+        '',
+        include('djoser.urls')
+    ),
+    path(
+        'auth/',
+        include('djoser.urls.authtoken')
+    ),
+    path(
+        '',
+        include(router1.urls)
+    ),
 ]

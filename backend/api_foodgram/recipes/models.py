@@ -117,6 +117,14 @@ class IngredientRecipe(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
     amount = models.IntegerField()
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['ingredient', 'recipe', 'amount'],
+                name='unique_ingredient_recipe_connection'
+            )
+        ]
+
     def __str__(self):
         return f'{self.ingredient} из рецепта {self.recipe}'
 
@@ -124,6 +132,14 @@ class IngredientRecipe(models.Model):
 class TagRecipe(models.Model):
     tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['tag', 'recipe'],
+                name='unique_tag_recipe_connection'
+            )
+        ]
 
     def __str__(self):
         return f'{self.tag} {self.recipe}'
@@ -142,6 +158,14 @@ class UserFavoriteRecipe(models.Model):
         related_name='favorite_recipes',
         verbose_name='Избранный рецепт'
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_user_favorite_recipe_record'
+            )
+        ]
 
     def __str__(self):
         return (f'Запись: {self.pk}.Пользователю '
@@ -164,8 +188,10 @@ class UserShoppingRecipe(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['user', 'recipe'],
-                                    name='unique_user_favorite_recipe')
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_recipe_in_user_cart'
+            )
         ]
 
     def __str__(self):
