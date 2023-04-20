@@ -2,7 +2,7 @@ import weasyprint
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, status, viewsets, mixins
+from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import (IsAuthenticated,
@@ -19,25 +19,19 @@ from recipes.permissions import (RecipeIsAuthenticated,
                                  FavoritesIsAuthenticated,
                                  ShoppingCartIsAuthenticated,
                                  TagIngredientPermission)
+from recipes.filters import RecipeFilter
+from recipes.collect_pdf import collect_shopping_pdf
+from users.models import (User,
+                          Follow)
+from users.permissions import UsersPermission
 from api.serializers import (RecipeCreateSerializer,
                              RecipeRetrieveSerializer,
                              TagSerializer,
                              IngredientSerializer,
                              ShortRecipeSerializer,
                              SubscriptionSerializer)
-from recipes.filters import RecipeFilter
-from recipes.collect_pdf import collect_shopping_pdf
-from users.models import (User,
-                          Follow)
-from users.permissions import UsersPermission
-
-
-class BaseGetView(
-    viewsets.GenericViewSet,
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin
-):
-    pass
+from api.utils import add_or_delete_user_recipe_connection
+from api.mixins import BaseGetView
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -62,10 +56,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
                                 FavoritesIsAuthenticated, ])
     def favorite(self, request, **kwargs):
         return add_or_delete_user_recipe_connection(
-            self,
-            UserFavoriteRecipe,
-            request,
-            kwargs['pk']
+            viewset_object=self,
+            serializer=ShortRecipeSerializer,
+            connection_model=UserFavoriteRecipe,
+            request=request,
+            pk=kwargs['pk']
         )
 
     @action(detail=False,
@@ -75,9 +70,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
                                 ShoppingCartIsAuthenticated, ])
     def get_shopping_cart(self, request, **kwargs):
         user = self.request.user
-        shopping_cart_path = collect_shopping_pdf(user)
+        shopping_cart_html = collect_shopping_pdf(user)
         shopping_cart_pdf = weasyprint.HTML(
-            shopping_cart_path + '.html'
+            file_obj=shopping_cart_html
         ).write_pdf()
         filename = "shopping_card.pdf"
 
@@ -93,10 +88,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
                                 ShoppingCartIsAuthenticated, ])
     def shopping_cart(self, request, **kwargs):
         return add_or_delete_user_recipe_connection(
-            self,
-            UserShoppingRecipe,
-            request,
-            kwargs['pk']
+            viewset_object=self,
+            serializer=ShortRecipeSerializer,
+            connection_model=UserShoppingRecipe,
+            request=request,
+            pk=kwargs['pk']
         )
 
 
@@ -160,34 +156,3 @@ def subscribe(request, user_id):
             author=author
         ).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-def add_or_delete_user_recipe_connection(
-        viewset_object,
-        connection_model,
-        request,
-        pk
-):
-    user = viewset_object.request.user
-    recipe = get_object_or_404(Recipe, id=pk)
-    if viewset_object.request.method == 'POST':
-        # добавление рецепта в список
-        connection_model.objects.get_or_create(
-            user=user,
-            recipe=recipe
-        )
-        serializer = ShortRecipeSerializer(
-            recipe,
-            context={'request': request}
-        )
-        return Response(
-            serializer.data,
-            status=status.HTTP_201_CREATED
-        )
-    elif viewset_object.request.method == 'DELETE':
-        # удаление рецепта из списка
-        connection_model.objects.filter(
-            recipe=recipe,
-            user=user
-        ).delete()
-        return Response(status=status.HTTP_200_OK)

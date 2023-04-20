@@ -1,5 +1,3 @@
-from abc import ABC
-
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers, validators
 from djoser.serializers import (UserSerializer,
@@ -7,7 +5,6 @@ from djoser.serializers import (UserSerializer,
 
 from recipes.models import (Recipe,
                             Tag,
-                            TagRecipe,
                             Ingredient,
                             IngredientRecipe,
                             UserFavoriteRecipe,
@@ -15,6 +12,7 @@ from recipes.models import (Recipe,
 from users.models import (User,
                           Follow)
 from api.fields import Base64ImageField
+from api.utils import create_recipe_record
 
 
 class CustomCreateUserSerializer(UserCreateSerializer):
@@ -123,24 +121,21 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         super().update(instance, validated_data)
-        author = instance.author
-        recipe_id = instance.id
-        instance.delete()
-
         ingredients = validated_data.pop('ingredientrecipe')
         tags = validated_data.pop('tags')
-        recipe = Recipe.objects.create(
-            author=author,
-            id=recipe_id,
-            **validated_data
-        )
+
+        lst = []
+        for ingredient in ingredients:
+            lst.append(ingredient['ingredient_id'])
+        instance.ingredients.set(lst)
 
         create_recipe_record(
             ingredients,
-            recipe,
+            instance,
             tags
         )
-        return recipe
+        instance.save()
+        return instance
 
     def to_representation(self, instance):
         return RecipeRetrieveSerializer(
@@ -204,36 +199,3 @@ class SubscriptionSerializer(serializers.Serializer):
 
     def get_recipes_count(self, obj):
         return Recipe.objects.filter(author=obj.author).count()
-
-
-def create_recipe_record(
-        ingredients,
-        recipe,
-        tags
-):
-    ingredients_bulk = list()
-    for ingredient in ingredients:
-        ingredients_bulk.append(
-            IngredientRecipe(
-                ingredient=ingredient['ingredient_id'],
-                recipe=recipe,
-                amount=ingredient['amount']
-            )
-        )
-    IngredientRecipe.objects.bulk_create(
-        ingredients_bulk,
-        batch_size=15
-    )
-    tags_bulk = list()
-    for tag in tags:
-        cur_tag = get_object_or_404(Tag, id=tag.id)
-        tags_bulk.append(
-            TagRecipe(
-                tag=cur_tag,
-                recipe=recipe
-            )
-        )
-    TagRecipe.objects.bulk_create(
-        tags_bulk,
-        batch_size=15
-    )

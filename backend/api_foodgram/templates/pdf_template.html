@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <h1>Список покупок пользователя {{ username }}</h1>
+    <ul>
+        {% for ingredient in shopping_cart %}
+            <li>
+                {{ ingredient.ingredient__name }} :
+                 {{ ingredient.amount__sum }}
+                 {{ ingredient.ingredient__measurement_unit }}
+            </li>
+        {% endfor %}
+    </ul>
+
+</body>
+</html>

@@ -32,7 +32,8 @@ urlpatterns = [
     ),
     path(
         'users/<int:user_id>/subscribe/',
-        subscribe
+        subscribe,
+        name='create_user_subscription'
     ),
     path(
         '',
