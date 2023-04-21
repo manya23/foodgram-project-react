@@ -11,7 +11,9 @@ services:
   web:
     # прописать путь к докерфайлу
     # image: konmari/api_yamdb:latest
-    build: ../backend/api_foodgram/
+    build:
+      context: ../backend/api_foodgram/
+      dockerfile: Dockerfile
     restart: always
     ports:
       - "8000:8000"
@@ -28,13 +30,6 @@ services:
     env_file:
       - ./.env
 
-  frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
-    volumes:
-      - ../frontend/:/app/result_build/
-
   nginx:
     image: nginx:1.19.3
     ports:
@@ -47,6 +42,13 @@ services:
       - media_value:/var/html/media/
     depends_on:
       - web
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ../frontend/:/app/result_build/
 
 volumes:
   static_value:

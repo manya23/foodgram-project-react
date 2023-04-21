@@ -2,7 +2,7 @@ FROM python:3.7-slim
 
 WORKDIR /app
 
-COPY ./backend/api_foodgram .
+COPY . .
 
 RUN apt-get update \
     && apt-get -y install libpq-dev gcc \

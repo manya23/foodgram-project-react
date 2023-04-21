@@ -123,11 +123,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         super().update(instance, validated_data)
         ingredients = validated_data.pop('ingredientrecipe')
         tags = validated_data.pop('tags')
-
-        lst = []
-        for ingredient in ingredients:
-            lst.append(ingredient['ingredient_id'])
-        instance.ingredients.set(lst)
+        IngredientRecipe.objects.filter(recipe=instance).delete()
 
         create_recipe_record(
             ingredients,

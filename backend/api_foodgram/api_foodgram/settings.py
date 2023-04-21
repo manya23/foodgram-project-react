@@ -1,6 +1,6 @@
 import os
 
-from django.core.management.utils import get_random_secret_key
+# from django.core.management.utils import get_random_secret_key
 from dotenv import load_dotenv
 
 
@@ -10,7 +10,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 dotenv_path = BASE_DIR + '/.env'
 load_dotenv(dotenv_path)
 
-SECRET_KEY = get_random_secret_key()
+# SECRET_KEY = get_random_secret_key()
+# SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = 'n$gl6dghs_!zg@ni9f225bc5dx^uc(qi2g!ik(y2pymxqtj#%%'
 
 # конвертация значения поля DEBUG из str в boo
 DEBUG = (bool(int(os.environ.get('DEBUG', 0))))
