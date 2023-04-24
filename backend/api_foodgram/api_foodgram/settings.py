@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 dotenv_path = BASE_DIR + '/.env'
+print('dotenv_path: ', dotenv_path)
 # dotenv_path = BASE_DIR[:-len('backend/api_foodgram')] + 'infra/.env'
 load_dotenv(dotenv_path)
 
