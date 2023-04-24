@@ -3,7 +3,6 @@ import os
 from django.core.management.utils import get_random_secret_key
 from dotenv import load_dotenv
 
-
 # /Users/mariavasileva/My_Projects/Dev/docker_project
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 

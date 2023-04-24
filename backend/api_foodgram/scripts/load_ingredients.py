@@ -1,9 +1,10 @@
 """
 Using: python manage.py runscript load_ingredients
 """
-from recipes.models import Ingredient
-import os
 import csv
+import os
+
+from recipes.models import Ingredient
 
 CSV_PATH = (os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             + '/data/ingredients.csv')

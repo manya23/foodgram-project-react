@@ -1,11 +1,7 @@
 from django.shortcuts import get_object_or_404
+from recipes.models import IngredientRecipe, Recipe, Tag, TagRecipe
 from rest_framework import status
 from rest_framework.response import Response
-
-from recipes.models import (Recipe,
-                            Tag,
-                            TagRecipe,
-                            IngredientRecipe,)
 
 
 def create_recipe_record(
