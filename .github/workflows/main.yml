@@ -64,7 +64,7 @@ jobs:
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            # Выполняет pull образа с DockerHub
+            # Выполняет pull образа сDockerHub
             sudo docker pull konmari/foodgram-project
 
             sudo docker compose stop
