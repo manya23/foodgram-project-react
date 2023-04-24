@@ -63,10 +63,9 @@ def add_or_delete_user_recipe_connection(
             serializer.data,
             status=status.HTTP_201_CREATED
         )
-    elif viewset_object.request.method == 'DELETE':
-        # удаление рецепта из списка
-        connection_model.objects.filter(
-            recipe=recipe,
-            user=user
-        ).delete()
-        return Response(status=status.HTTP_200_OK)
+    # удаление рецепта из списка
+    connection_model.objects.filter(
+        recipe=recipe,
+        user=user
+    ).delete()
+    return Response(status=status.HTTP_200_OK)

@@ -10,11 +10,10 @@ def collect_shopping_pdf(user):
         'ingredient__name', 'ingredient__measurement_unit'
     ).annotate(Sum('amount')).order_by()
 
-    rendered = render_to_string(
+    return render_to_string(
         'pdf_template.html',
         {
             'username': user.username,
             'shopping_cart': ingredients
         }
     )
-    return rendered

@@ -143,9 +143,8 @@ def subscribe(request, user_id):
             context={'request': request},
         )
         return Response(data=serializer.data, status=status.HTTP_201_CREATED)
-    elif request.method == 'DELETE':
-        Follow.objects.filter(
-            user=user,
-            author=author
-        ).delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    Follow.objects.filter(
+        user=user,
+        author=author
+    ).delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
