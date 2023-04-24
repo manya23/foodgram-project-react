@@ -60,8 +60,6 @@ jobs:
       - name: Make envfile
         uses: SpicyPizza/create-envfile@v1.3
         with:
-          envkey_DEBUG: 0
-          envkey_ALLOWED_HOSTS: *
           envkey_DB_ENGINE: ${{ secrets.DB_ENGINE }}
           envkey_DB_NAME: ${{ secrets.DB_NAME }}
           envkey_POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
