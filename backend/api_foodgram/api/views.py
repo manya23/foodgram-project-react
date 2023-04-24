@@ -108,7 +108,8 @@ class IngredientViewSet(BaseGetView):
     pagination_class = None
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    filter_backends = (filters.SearchFilter,)
+    filter_backends = (filters.SearchFilter, )
+    # filterset_fields = ('name',)
     search_fields = ('name',)
 
 

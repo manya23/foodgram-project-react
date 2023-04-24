@@ -6,9 +6,9 @@ class RecipeIsAuthenticated(permissions.BasePermission):
     def has_permission(self, request, view):
         # гет доступен всем: поставлю ReadOnly
         return (
-                request.method in permissions.SAFE_METHODS
-                or request.user.is_authenticated
-                )
+            request.method in permissions.SAFE_METHODS
+            or request.user.is_authenticated
+        )
 
     def has_object_permission(self, request, view, obj):
         # пост только авторизованным польззователям
@@ -26,8 +26,8 @@ class FavoritesIsAuthenticated(permissions.BasePermission):
 
     def has_permission(self, request, view):
         return (
-                request.method in ['POST', 'DELETE']
-                and request.user.is_authenticated
+            request.method in ['POST', 'DELETE']
+            and request.user.is_authenticated
         )
 
     def has_object_permission(self, request, view, obj):
@@ -42,8 +42,8 @@ class ShoppingCartIsAuthenticated(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         return (
-                request.method in ['POST', 'DELETE']
-                and request.user.is_authenticated
+            request.method in ['POST', 'DELETE']
+            and request.user.is_authenticated
         )
 
 
@@ -51,10 +51,10 @@ class TagIngredientPermission(permissions.BasePermission):
 
     def has_permission(self, request, view):
         return (
-                request.method in permissions.SAFE_METHODS
+            request.method in permissions.SAFE_METHODS
         )
 
     def has_object_permission(self, request, view, obj):
         return (
-                request.method in permissions.SAFE_METHODS
+            request.method in permissions.SAFE_METHODS
         )

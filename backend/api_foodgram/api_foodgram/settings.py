@@ -1,6 +1,6 @@
 import os
 
-# from django.core.management.utils import get_random_secret_key
+from django.core.management.utils import get_random_secret_key
 from dotenv import load_dotenv
 
 
@@ -10,14 +10,14 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 dotenv_path = BASE_DIR + '/.env'
 load_dotenv(dotenv_path)
 
-# SECRET_KEY = get_random_secret_key()
-# SECRET_KEY = os.getenv("SECRET_KEY")
-SECRET_KEY = 'n$gl6dghs_!zg@ni9f225bc5dx^uc(qi2g!ik(y2pymxqtj#%%'
+SECRET_KEY = get_random_secret_key()
+
 
 # конвертация значения поля DEBUG из str в boo
 DEBUG = (bool(int(os.environ.get('DEBUG', 0))))
 
-ALLOWED_HOSTS = []
+# TODO: do smth with uploading .env
+ALLOWED_HOSTS = ['*']
 if not DEBUG:
     ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default='*').split(' ')
 
@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'rest_framework',
     'rest_framework.authtoken',
+    'corsheaders',
     'djoser',
     'django_filters',
     'users',
@@ -45,6 +46,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -74,10 +76,20 @@ TEMPLATES = [
 WSGI_APPLICATION = 'api_foodgram.wsgi.application'
 
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(BASE_DIR, 'db_new.sqlite3'),
+#     }
+# }
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db_new.sqlite3'),
+        'ENGINE': os.getenv('DB_ENGINE', default='django.db.backends.postgresql'),
+        'NAME': os.getenv('DB_NAME', default='postgres'),
+        'USER': os.getenv('POSTGRES_USER', default='postgres'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', default='my_postgres'),
+        'HOST': os.getenv('DB_HOST', default='db'),
+        'PORT': os.getenv('DB_PORT', default='5432')
     }
 }
 
@@ -133,6 +145,7 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
+    'SEARCH_PARAM': 'name'
 }
 
 DJOSER = {

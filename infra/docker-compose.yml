@@ -47,8 +47,11 @@ services:
     build:
       context: ../frontend
       dockerfile: Dockerfile
+    links:
+      - web
     volumes:
       - ../frontend/:/app/result_build/
+
 
 volumes:
   static_value:
