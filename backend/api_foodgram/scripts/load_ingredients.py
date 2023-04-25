@@ -16,7 +16,7 @@ def run():
         next(reader)
 
         # get_or_create()
-        # Ingredient.objects.all().delete()
+        # Ingredient.objects.all().delete( )
 
         for row in reader:
             Ingredient.objects.get_or_create(
