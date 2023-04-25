@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.db.models import Count
 
 from .models import (Ingredient, IngredientRecipe, Recipe, Tag, TagRecipe,
                      UserFavoriteRecipe, UserShoppingRecipe)
@@ -13,8 +14,19 @@ class RecipeAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
     def get_recipes_count(self, obj):
-        return UserFavoriteRecipe.objects.filter(recipe=obj.recipe).count()
+        return obj.recipes_count
     get_recipes_count.short_description = 'Добавление рецепта в избранное'
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        queryset = queryset.annotate(
+            recipes_count=Count("favorite_recipes"),
+        )
+        return queryset
+
+    # def get_recipes_count(self, obj):
+    #     return UserFavoriteRecipe.objects.filter(recipe=obj.recipe).count()
+    # get_recipes_count.short_description = 'Добавление рецепта в избранное'
 
 
 @admin.register(Ingredient)
@@ -36,7 +48,7 @@ class IngredientRecipeAdmin(admin.ModelAdmin):
     get_recipe.admin_order_field = 'recipe__name'
 
     def get_ingredient(self, obj):
-        return obj.ingredient.author
+        return obj.ingredient.name
     get_ingredient.short_description = 'Ингредиент'
     get_ingredient.admin_order_field = 'ingredient__name'
 

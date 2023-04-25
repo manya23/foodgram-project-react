@@ -18,9 +18,9 @@ class FollowAdmin(admin.ModelAdmin):
     list_display = ('get_author', 'get_user')
 
     def get_author(self, obj):
-        return obj.user.username
+        return obj.author.username
     get_author.short_description = 'Автор'
-    get_author.admin_order_field = 'user__username'
+    get_author.admin_order_field = 'author__username'
 
     def get_user(self, obj):
         return obj.user.username
