@@ -181,39 +181,22 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
         fields = ('id', 'image', 'name', 'cooking_time')
 
 
-class SubscriptionSerializer(serializers.Serializer):
-    email = serializers.SerializerMethodField(read_only=True)
-    id = serializers.SerializerMethodField(read_only=True)
-    username = serializers.SerializerMethodField(read_only=True)
-    first_name = serializers.SerializerMethodField(read_only=True)
-    last_name = serializers.SerializerMethodField(read_only=True)
-    is_subscribed = serializers.SerializerMethodField(read_only=True)
-    author = CustomUserSerializer()
+class SubscriptionSerializer(serializers.ModelSerializer):
     recipes = ShortRecipeSerializer(many=True,
                                     source='author.recipes')
+    is_subscribed = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
+        model = User
         fields = ('email', 'id', 'username', 'first_name',
                   'last_name', 'is_subscribed', 'recipes')
 
-    def get_recipes_count(self, obj):
-        return Recipe.objects.filter(author=obj.author).count()
-
-    def get_email(self, obj):
-        return obj.author.email
-
-    def get_id(self, obj):
-        return obj.author.id
-
-    def get_username(self, obj):
-        return obj.author.username
-
-    def get_first_name(self, obj):
-        return obj.author.first_name
-
-    def get_last_name(self, obj):
-        return obj.author.last_name
-
     def get_is_subscribed(self, obj):
-        return obj.author.is_subscribed
+        if self.context['request'].user.is_authenticated:
+            return Follow.objects.filter(user=self.context['request'].user,
+                                         author=obj).exists()
+        return False
+
+    def get_recipes_count(self, obj):
+        return Recipe.objects.filter(author=obj).count()
