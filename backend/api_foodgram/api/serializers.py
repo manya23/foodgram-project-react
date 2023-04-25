@@ -182,7 +182,8 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
-    recipes = ShortRecipeSerializer(source='author.recipe',
+    # TODO: source='user.recipe'
+    recipes = ShortRecipeSerializer(source='user.recipes',
                                     many=True,
                                     read_only=True)
     is_subscribed = serializers.SerializerMethodField()
