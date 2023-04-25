@@ -10,7 +10,7 @@ load_dotenv(dotenv_path)
 
 SECRET_KEY = get_random_secret_key()
 
-# конвертация значения поля DEBUG из str в boo
+# конвертация значения поля DEBUG из str в bool
 DEBUG = (bool(int(os.environ.get('DEBUG', 0))))
 
 ALLOWED_HOSTS = []
