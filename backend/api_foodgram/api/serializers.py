@@ -182,15 +182,20 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
-    recipes = ShortRecipeSerializer(many=True,
-                                    source='author.recipes')
+    recipes = ShortRecipeSerializer(source='author.recipe',
+                                    many=True,
+                                    read_only=True)
     is_subscribed = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField(read_only=True)
+    author = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
         fields = ('email', 'id', 'username', 'first_name',
                   'last_name', 'is_subscribed', 'recipes')
+
+    def get_author(self, obj):
+        return obj
 
     def get_is_subscribed(self, obj):
         if self.context['request'].user.is_authenticated:
