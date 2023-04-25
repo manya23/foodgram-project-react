@@ -22,10 +22,6 @@ class RecipeAdmin(admin.ModelAdmin):
             recipes_count=Count("favorite_recipes"),
         )
 
-    # def get_recipes_count(self, obj):
-    #     return UserFavoriteRecipe.objects.filter(recipe=obj.recipe).count()
-    # get_recipes_count.short_description = 'Добавление рецепта в избранное'
-
 
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
@@ -38,7 +34,7 @@ class IngredientAdmin(admin.ModelAdmin):
 @admin.register(IngredientRecipe)
 class IngredientRecipeAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
-    list_display = ('get_recipe', 'get_ingredient')
+    list_display = ('amount', 'get_recipe', 'get_ingredient')
 
     def get_recipe(self, obj):
         return obj.recipe.name
