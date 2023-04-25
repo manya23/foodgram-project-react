@@ -10,10 +10,7 @@ services:
 
   web:
     # прописать путь к докерфайлу
-    # image: konmari/api_yamdb:latest
-    build:
-      context: ../backend/api_foodgram/
-      dockerfile: Dockerfile
+    image: konmari/foodgram-project:latest
     restart: always
     ports:
       - "8000:8000"
