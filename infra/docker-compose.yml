@@ -41,9 +41,7 @@ services:
       - web
 
   frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
+    image: konmari/foodgram-frontend:v1.04.25.2023
     links:
       - web
     volumes:
