@@ -18,11 +18,9 @@ class RecipeAdmin(admin.ModelAdmin):
     get_recipes_count.short_description = 'Добавление рецепта в избранное'
 
     def get_queryset(self, request):
-        queryset = super().get_queryset(request)
-        queryset = queryset.annotate(
+        return super().get_queryset(request).annotate(
             recipes_count=Count("favorite_recipes"),
         )
-        return queryset
 
     # def get_recipes_count(self, obj):
     #     return UserFavoriteRecipe.objects.filter(recipe=obj.recipe).count()
