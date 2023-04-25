@@ -185,11 +185,11 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     recipes = ShortRecipeSerializer(source='author.recipes',
                                     many=True,
                                     read_only=True)
-    email = serializers.CharField(source='user.email')
-    id = serializers.IntegerField(source='user.id')
-    username = serializers.CharField(source='user.username')
-    first_name = serializers.CharField(source='user.first_name')
-    last_name = serializers.CharField(source='user.last_name')
+    email = serializers.CharField(source='author.email')
+    id = serializers.IntegerField(source='author.id')
+    username = serializers.CharField(source='author.username')
+    first_name = serializers.CharField(source='author.first_name')
+    last_name = serializers.CharField(source='author.last_name')
     is_subscribed = serializers.SerializerMethodField(read_only=True)
     recipes_count = serializers.SerializerMethodField(read_only=True)
 
