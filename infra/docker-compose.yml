@@ -39,9 +39,10 @@ services:
       - media_value:/var/html/media/
     depends_on:
       - web
+      - frontend
 
   frontend:
-    image: konmari/foodgram-frontend:v1.04.25.2023
+    image: konmari/foodgram-frontend:v2.04.25.2023
     links:
       - web
     volumes:
