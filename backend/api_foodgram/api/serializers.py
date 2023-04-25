@@ -181,28 +181,26 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
         fields = ('id', 'image', 'name', 'cooking_time')
 
 
-class SubscriptionSerializer(serializers.ModelSerializer):
-    # TODO: source='user.recipe'
-    recipes = ShortRecipeSerializer(source='user.recipes',
+class SubscriptionSerializer(serializers.ModelField):
+    recipes = ShortRecipeSerializer(source='author.recipes',
                                     many=True,
                                     read_only=True)
-    is_subscribed = serializers.SerializerMethodField()
+    email = serializers.EmailField(source='user.email')
+    id = serializers.IntegerField(source='user.id')
+    username = serializers.CharField(source='user.username')
+    first_name = serializers.CharField(source='user.first_name')
+    last_name = serializers.CharField(source='user.last_name')
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
     recipes_count = serializers.SerializerMethodField(read_only=True)
-    author = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
-        model = User
+        model = Follow
         fields = ('email', 'id', 'username', 'first_name',
-                  'last_name', 'is_subscribed', 'recipes')
-
-    def get_author(self, obj):
-        return obj
-
-    def get_is_subscribed(self, obj):
-        if self.context['request'].user.is_authenticated:
-            return Follow.objects.filter(user=self.context['request'].user,
-                                         author=obj).exists()
-        return False
+                  'last_name', 'is_subscribed', 'recipes',
+                  'recipes_count')
 
     def get_recipes_count(self, obj):
-        return Recipe.objects.filter(author=obj).count()
+        return Recipe.objects.filter(author=obj.user).count()
+
+    def get_is_subscribed(self, obj):
+        return True
