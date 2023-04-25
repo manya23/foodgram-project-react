@@ -64,15 +64,12 @@ jobs:
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            pwd
-            ls -la
             # Выполняет pull образа с DockerHub
             sudo docker pull konmari/foodgram-project
-
-            # sudo docker compose stop
-            # sudo docker compose rm web
             rm .env
             touch .env
+            echo DEBUG=${{ secrets.DEBUG }} >> .env
+            echo ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }} >> .env
             echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
             echo DB_NAME=${{ secrets.DB_NAME }} >> .env
             echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env
@@ -83,6 +80,7 @@ jobs:
             sudo docker compose up --force-recreate -d
             sudo docker compose exec web python manage.py migrate
             sudo docker compose exec web python manage.py collectstatic --no-input
+            sudo docker compose exec web python manage.py runscript load_ingredients
 
 
   send_message:

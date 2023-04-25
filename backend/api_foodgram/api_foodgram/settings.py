@@ -7,20 +7,16 @@ from dotenv import load_dotenv
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 dotenv_path = BASE_DIR + '/.env'
-print('dotenv_path: ', dotenv_path)
-# dotenv_path = BASE_DIR[:-len('backend/api_foodgram')] +'infra/.env'
 load_dotenv(dotenv_path)
 
 SECRET_KEY = get_random_secret_key()
 
-
 # конвертация значения поля DEBUG из str в boo
 DEBUG = (bool(int(os.environ.get('DEBUG', 0))))
 
-# TODO: do smth with uploading .env
-ALLOWED_HOSTS = ['158.160.29.94', '127.0.0.1', 'localhost']
-# if not DEBUG:
-#     ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default='*').split(' ')
+ALLOWED_HOSTS = []
+if not DEBUG:
+    ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default='*').split(' ')
 
 
 # Application definition
@@ -76,13 +72,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'api_foodgram.wsgi.application'
 
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': os.path.join(BASE_DIR, 'db_new.sqlite3'),
-#     }
-# }
 DATABASES = {
     'default': {
         'ENGINE': os.getenv('DB_ENGINE', default='django.db.backends.postgresql'),
