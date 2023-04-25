@@ -8,7 +8,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 dotenv_path = BASE_DIR + '/.env'
 print('dotenv_path: ', dotenv_path)
-# dotenv_path = BASE_DIR[:-len('backend/api_foodgram')] + 'infra/.env'
+# dotenv_path = BASE_DIR[:-len('backend/api_foodgram')] +'infra/.env'
 load_dotenv(dotenv_path)
 
 SECRET_KEY = get_random_secret_key()
