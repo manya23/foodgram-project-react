@@ -181,15 +181,15 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
         fields = ('id', 'image', 'name', 'cooking_time')
 
 
-class SubscriptionSerializer(serializers.ModelField):
+class SubscriptionSerializer(serializers.ModelSerializer):
     recipes = ShortRecipeSerializer(source='author.recipes',
                                     many=True,
                                     read_only=True)
-    # email = serializers.Serializer(source='user.email')
-    # id = serializers.Serializer(source='user.id')
-    # username = serializers.Serializer(source='user.username')
-    # first_name = serializers.Serializer(source='user.first_name')
-    # last_name = serializers.Serializer(source='user.last_name')
+    email = serializers.Serializer(source='user.email')
+    id = serializers.Serializer(source='user.id')
+    username = serializers.Serializer(source='user.username')
+    first_name = serializers.Serializer(source='user.first_name')
+    last_name = serializers.Serializer(source='user.last_name')
     is_subscribed = serializers.SerializerMethodField(read_only=True)
     recipes_count = serializers.SerializerMethodField(read_only=True)
 
