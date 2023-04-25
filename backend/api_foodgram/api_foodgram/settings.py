@@ -18,9 +18,9 @@ SECRET_KEY = get_random_secret_key()
 DEBUG = (bool(int(os.environ.get('DEBUG', 0))))
 
 # TODO: do smth with uploading .env
-ALLOWED_HOSTS = ['*']
-if not DEBUG:
-    ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default='*').split(' ')
+ALLOWED_HOSTS = ['158.160.29.94', '127.0.0.1', 'localhost']
+# if not DEBUG:
+#     ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default='*').split(' ')
 
 
 # Application definition
