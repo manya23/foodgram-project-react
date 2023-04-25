@@ -117,6 +117,8 @@ class IngredientRecipe(models.Model):
     amount = models.IntegerField()
 
     class Meta:
+        verbose_name = 'Связь ингредиента с рецептом'
+        verbose_name_plural = 'Связь ингредиентов с рецептами'
         constraints = [
             models.UniqueConstraint(
                 fields=['ingredient', 'recipe', 'amount'],
@@ -133,6 +135,8 @@ class TagRecipe(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
 
     class Meta:
+        verbose_name = 'Связь тэга с рецептом'
+        verbose_name_plural = 'Связь тэгов с рецептами'
         constraints = [
             models.UniqueConstraint(
                 fields=['tag', 'recipe'],
@@ -159,6 +163,8 @@ class UserFavoriteRecipe(models.Model):
     )
 
     class Meta:
+        verbose_name = 'Рецепт из избранного пользователя'
+        verbose_name_plural = 'Рецепты из избранного пользователей'
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'recipe'],
@@ -186,6 +192,8 @@ class UserShoppingRecipe(models.Model):
     )
 
     class Meta:
+        verbose_name = 'Рецепт из списка покупок пользователя'
+        verbose_name_plural = 'Рецепты из списков покупок пользователей'
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'recipe'],
