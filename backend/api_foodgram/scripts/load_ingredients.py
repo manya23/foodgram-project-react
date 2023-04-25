@@ -15,10 +15,15 @@ def run():
         reader = csv.reader(file)
         next(reader)
 
-        Ingredient.objects.all().delete()
+        # get_or_create()
+        # Ingredient.objects.all().delete()
 
         for row in reader:
-            film = Ingredient(name=row[0],
-                              measurement_unit=row[1]
-                              )
-            film.save()
+            Ingredient.objects.get_or_create(
+                name=row[0],
+                measurement_unit=row[1]
+            )
+            # film = Ingredient(name=row[0],
+            #                   measurement_unit=row[1]
+            #                   )
+            # film.save()
