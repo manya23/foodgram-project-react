@@ -10,6 +10,7 @@ from rest_framework.permissions import (IsAuthenticated,
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from api.pagination import RecipePagination
 from api.mixins import BaseGetView
 from api.serializers import (IngredientSerializer, RecipeCreateSerializer,
                              RecipeRetrieveSerializer, ShortRecipeSerializer,
@@ -30,7 +31,7 @@ from users.permissions import UsersPermission
 class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = (RecipeIsAuthenticated, IsAuthenticatedOrReadOnly,)
     queryset = Recipe.objects.all()
-    pagination_class = PageNumberPagination
+    pagination_class = RecipePagination
     filter_backends = (filters.SearchFilter, DjangoFilterBackend,)
     filterset_class = RecipeFilter
     search_fields = ('tags',)
