@@ -10,46 +10,21 @@
 - http://158.160.29.94
 
  ### Описание
- API для сервиса 'Продуктовый помощник'.
+ В репозитории представлен API для сервиса 'Продуктовый помощник'.
+И фронтэнд реализация сервиса, включающая в себя веб-сервер, базу данных
+и фронтэнд часть.
  ### Технологии
  - Python 3.7
  - Django 2.2
  ### Запуск
- Для запуска проекта : 
+ Для запуска проекта, из директории `infra/` необходимо запустить 
+ команду сборки docker-контейнеров, содержащих сервер базы данных
+  Postgress, веб-сервер Nginx и django-проект API продуктового 
+ помощника: 
  ```
- pip install -r requirements.txt
+docker compose build
  ```
- Из директории проекта, содержащей файл manage.py, выполните миграции: 
+Когда контейнеры будут собраны, можно запустить проект командой : 
  ```
- python3 manage.py migrate
+docker-compose up
  ```
- Теперь из этой же директории можно запустить проект:
- ```
- python3 manage.py runserver
- ```
-
-### Полный список эндпоинтов проекта:
-/api/users/ </br>
-/api/users/{id}/ </br>
-
-/api/users/me/ </br>
-/api/users/set_password/ </br>
-
-/api/auth/token/login/ </br>
-/api/auth/token/logout/ </br>
-
-/api/tags/ </br>
-/api/tags/{id}/ </br>
-
-/api/recipes/ </br>
-/api/recipes/{id}/ </br>
-
-/api/recipes/download_shopping_cart/ </br>
-/api/recipes/{id}/shopping_cart/ </br>
-/api/recipes/{id}/favorite/ </br>
-
-/api/users/subscriptions/ </br>
-/api/users/{id}/subscribe/ </br>
-
-/api/ingredients/ </br>
-/api/ingredients/{id}/ </br>
