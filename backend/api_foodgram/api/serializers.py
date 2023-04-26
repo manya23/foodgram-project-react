@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers, validators
+from rest_framework.validators import ValidationError
 from djoser.serializers import UserCreateSerializer, UserSerializer
 
 from api.fields import Base64ImageField
@@ -64,6 +65,11 @@ class IngredientRecipeInputSerializer(serializers.Serializer):
     id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all(), source="ingredient_id")
     amount = serializers.IntegerField()
+
+    def validate_amount(self, value):
+        if value < 0:
+            raise ValidationError('Количество не может быть отрицательным')
+        return value
 
 
 class IngredientRecipeSerializer(serializers.ModelSerializer):
