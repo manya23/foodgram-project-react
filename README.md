@@ -1,5 +1,7 @@
 # Foodgram-project
 
+![workflow status](https://github.com/manya23/foodgram-project-react/actions/workflows/main.yml/badge.svg)
+
 ### Информация для ревью
 
 Данные админа:
