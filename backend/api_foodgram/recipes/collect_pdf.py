@@ -1,5 +1,6 @@
 from django.db.models import Sum
 from django.template.loader import render_to_string
+
 from recipes.models import IngredientRecipe
 
 

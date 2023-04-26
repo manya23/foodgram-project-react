@@ -9,21 +9,15 @@ services:
       - ./.env
 
   web:
-    # прописать путь к докерфайлу
     image: konmari/foodgram-project:latest
     restart: always
-    ports:
-      - "8000:8000"
+#    ports:
+#      - "8000:8000"
     volumes:
-      # Контейнер web будет работать с данными, хранящиеся в томе static_value,
-      # через свою директорию /var/html/static/
       - static_value:/app/static/
-      # через свою директорию /var/html/media/
       - media_value:/app/media/
-    # "зависит от",
     depends_on:
       - db
-    # прописать путь к .env
     env_file:
       - ./.env
 

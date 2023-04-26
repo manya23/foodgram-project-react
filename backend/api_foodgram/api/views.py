@@ -1,12 +1,20 @@
 import weasyprint
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, status, viewsets
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import (IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from api.mixins import BaseGetView
 from api.serializers import (IngredientSerializer, RecipeCreateSerializer,
                              RecipeRetrieveSerializer, ShortRecipeSerializer,
                              SubscriptionSerializer, TagSerializer)
 from api.utils import add_or_delete_user_recipe_connection
-from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import DjangoFilterBackend
 from recipes.collect_pdf import collect_shopping_pdf
 from recipes.filters import RecipeFilter
 from recipes.models import (Ingredient, Recipe, Tag, UserFavoriteRecipe,
@@ -15,13 +23,6 @@ from recipes.permissions import (FavoritesIsAuthenticated,
                                  RecipeIsAuthenticated,
                                  ShoppingCartIsAuthenticated,
                                  TagIngredientPermission)
-from rest_framework import filters, status, viewsets
-from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import (IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
-from rest_framework.response import Response
-from rest_framework.views import APIView
 from users.models import Follow, User
 from users.permissions import UsersPermission
 

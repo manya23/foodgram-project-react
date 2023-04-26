@@ -1,10 +1,11 @@
+from django.shortcuts import get_object_or_404
+from rest_framework import serializers, validators
+from djoser.serializers import UserCreateSerializer, UserSerializer
+
 from api.fields import Base64ImageField
 from api.utils import create_recipe_record
-from django.shortcuts import get_object_or_404
-from djoser.serializers import UserCreateSerializer, UserSerializer
 from recipes.models import (Ingredient, IngredientRecipe, Recipe, Tag,
                             UserFavoriteRecipe, UserShoppingRecipe)
-from rest_framework import serializers, validators
 from users.models import Follow, User
 
 

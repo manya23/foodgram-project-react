@@ -1,7 +1,8 @@
 from django.shortcuts import get_object_or_404
-from recipes.models import IngredientRecipe, Recipe, Tag, TagRecipe
 from rest_framework import status
 from rest_framework.response import Response
+
+from recipes.models import IngredientRecipe, Recipe, Tag, TagRecipe
 
 
 def create_recipe_record(
@@ -68,4 +69,4 @@ def add_or_delete_user_recipe_connection(
         recipe=recipe,
         user=user
     ).delete()
-    return Response(status=status.HTTP_200_OK)
+    return Response(status=status.HTTP_204_NO_CONTENT)
